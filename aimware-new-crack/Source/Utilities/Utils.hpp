@@ -35,4 +35,6 @@ namespace Utils
 	std::string GetModuleName(std::uintptr_t nBaseAddress);
 
 	std::string GetCurrentDateTime();
+
+	std::uint8_t* PatternScan(const std::string& sModule, const std::string& sPattern);
 }

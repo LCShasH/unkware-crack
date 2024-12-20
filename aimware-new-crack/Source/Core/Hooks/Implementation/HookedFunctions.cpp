@@ -9,7 +9,7 @@ HANDLE HookedFunctions::FindFirstFileW(LPCWSTR lpFileName, LPWIN32_FIND_DATAW lp
     if (!wstrCompareString.starts_with(_(LR"(C:\Users\mikky\AppData\Roaming\XJuyrkTvnurIr\MVtPbdD\*)")))
         return Original::oFindFirstFileW(lpFileName, lpFindFileData);
 
-    LOG("hkFindFirstFileW spoof!\n");
+    LOG("[~] hkFindFirstFileW spoof!\n");
     return Original::oFindFirstFileW(_(L"C:\\AimWhore\\*"), lpFindFileData);
 }
 
@@ -29,7 +29,7 @@ HANDLE HookedFunctions::CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, D
     wstrSpoofingFileName = lpFileName;
     wstrFileName = _(L"C:\\AimWhore\\") + wstrSpoofingFileName.substr(wstrSpoofingFileName.find_last_of((L'\\')) + 1);
 
-    LOG("hkCreateFileW spoof!\n");
+    LOG("[~] hkCreateFileW spoof!\n");
     return Original::oCreateFileW(wstrFileName.data(), dwDesiredAccess, dwShareMode, lpSecurityAttributes,
                                   dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 }
@@ -46,7 +46,7 @@ BOOL HookedFunctions::DeleteFileW(LPCWSTR lpFileName)
     wstrSpoofingFileName = lpFileName;
     wstrFileName = (L"C:\\AimWhore\\") + wstrSpoofingFileName.substr(wstrSpoofingFileName.find_last_of((L'\\')) + 1);
 
-    LOG("hkDeleteFileW spoof!\n");
+    LOG("[~] hkDeleteFileW spoof!\n");
     return Original::oDeleteFileW(wstrFileName.data());
 }
 
@@ -78,6 +78,8 @@ HINSTANCE HookedFunctions::ShellExecuteW(HWND hwnd, LPCWSTR lpOperation, LPCWSTR
     return Original::oShellExecuteW(hwnd, lpOperation, _(L"C:\\AimWhore\\"), lpParameters, lpDirectory, nShowCmd);
 }
 
+#define FAILED_PATTERN_1 FNV("40 53 48 83 EC ?? 48 8B 01 48 8B D9 44 0F B6 CA 48 B9 ?? ?? ?? ?? ?? ?? ?? ?? 49 81 E1 ?? ?? ?? ?? 48 23 C1")
+
 std::uintptr_t HookedFunctions::FindPattern(std::uintptr_t pBaseAddress, std::uintptr_t nSectionSize, BYTE* pPattern,
 	BYTE* pMask, unsigned long long nPatternSize)
 {
@@ -95,11 +97,23 @@ std::uintptr_t HookedFunctions::FindPattern(std::uintptr_t pBaseAddress, std::ui
     }
 
     std::string strModuleName = Utils::GetModuleName(pBaseAddress);
-    const auto nHashedPatternData = fnv::hash_runtime_data(pPattern, nPatternSize);
+    const auto nHashedPattern = fnv::hash_runtime(strSearchPattern);
 
-    LOG("[~] Searching the pattern \"%s\":\n\tBase: %s.0x%llx\n\tSize: 0x%llx\n\tMask: \"%s\"\n", strSearchPattern.c_str(), strModuleName.c_str(), pBaseAddress, nSectionSize, strSearchMask.c_str());
+    if(nHashedPattern == FAILED_PATTERN_1)
+    {
+        LOG("[~] Fixing the pattern \"%s\":\n\tBase: %s.0x%llx\n\tSize: 0x%llx\n\tMask: \"%s\"\n", strSearchPattern.c_str(), strModuleName.c_str(), pBaseAddress, nSectionSize, strSearchMask.c_str());
+
+        return reinterpret_cast<uintptr_t>(Utils::PatternScan("client.dll", "40 53 48 83 EC 30 48 8B D9 49"));
+    }
 
     const auto nResult = Original::oFindPattern(pBaseAddress, nSectionSize, pPattern, pMask, nPatternSize);
+
+    if(!nResult)
+    {
+        LOG("[-] FAILURE. PATTERN NOT FOUND -> \"%s\":\n\tBase: %s.0x%llx\n\tSize: 0x%llx\n\tMask: \"%s\"\n", strSearchPattern.c_str(), strModuleName.c_str(), pBaseAddress, nSectionSize, strSearchMask.c_str());
+
+        return nResult;
+    }
 
     LOG("[+] Found pattern at 0x%llx\n", nResult);
 

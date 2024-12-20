@@ -84,8 +84,8 @@ namespace VehSpoofer
 				if (iCounter == 37178)
 				{
 					FixImports();
-					bPrintImportCall = true;
-					LOG("\nAll shit fixed!\n");
+					//bPrintImportCall = true;
+					LOG("\n\nAll shit fixed!\nHave a nice play!\n\n");
 
 					Beep(_(400), _(250));
 				}
@@ -142,7 +142,7 @@ namespace VehSpoofer
 				static auto nCpuIdCounter = 0;
 				nCpuIdCounter++;
 
-				LOG("[~] [%d] Spoofed CPUID at 0x%llx\n", nCpuIdCounter, pExceptionInfo->ContextRecord->Rip);
+				//LOG("[~] [%d] Spoofed CPUID at 0x%llx\n", nCpuIdCounter, pExceptionInfo->ContextRecord->Rip);
 			}
 
 			pExceptionInfo->ContextRecord->Rip += _(2);
@@ -156,7 +156,7 @@ namespace VehSpoofer
 
 			static auto nBuildNumberCounter = 0;
 			nBuildNumberCounter++;
-			LOG("[~] [%03d] NtBuildNumber spoofed at 0x%llx\n", nBuildNumberCounter, pExceptionInfo->ContextRecord->Rip);
+			//LOG("[~] [%03d] NtBuildNumber spoofed at 0x%llx\n", nBuildNumberCounter, pExceptionInfo->ContextRecord->Rip);
 
 			return _(EXCEPTION_CONTINUE_EXECUTION);
 		}
@@ -314,6 +314,7 @@ namespace VehSpoofer
 		// Just check if the execution flow in next blocks contains
 		// mov ..., eax/ecx/edx/ebx
 		// And patch it!
+
 		MANUAL_PATCH(0x23b66e1940);
 		MANUAL_PATCH(0x23b673b59f);
 		MANUAL_PATCH(0x23b69cb647);
@@ -421,7 +422,7 @@ namespace VehSpoofer
 
 		SetNtBuildNumberHook(hThread);
 #if !defined(PRODUCTION_BUILD)
-		system("pause");
+		//system("pause");
 #endif
 		ResumeThread(hThread);
 		LOG("[+] Thread resumed!\n");

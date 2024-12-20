@@ -19,7 +19,7 @@ namespace Core
 		freopen_s(&m_pStreamCout, "CONOUT$", "w", stdout);
 		freopen_s(&m_pStreamCerr, "CONOUT$", "w", stderr);
 
-		SetConsoleTitleA("Holy shitty crack!");
+		SetConsoleTitleA("unkware-crack by @mhalaider. x-mas present?");
 #endif
 
 		Binary::Initialize();
