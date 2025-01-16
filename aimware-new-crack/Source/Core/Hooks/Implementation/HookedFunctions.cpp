@@ -79,6 +79,7 @@ HINSTANCE HookedFunctions::ShellExecuteW(HWND hwnd, LPCWSTR lpOperation, LPCWSTR
 }
 
 #define FAILED_PATTERN_1 FNV("40 53 48 83 EC ?? 48 8B 01 48 8B D9 44 0F B6 CA 48 B9 ?? ?? ?? ?? ?? ?? ?? ?? 49 81 E1 ?? ?? ?? ?? 48 23 C1")
+#define FAILED_PATTERN_2 FNV("74 ?? 48 8B 01 44 0F B6 C5 48 8B D7 FF 90 30 01 00 00 EB")
 
 std::uintptr_t HookedFunctions::FindPattern(std::uintptr_t pBaseAddress, std::uintptr_t nSectionSize, BYTE* pPattern,
 	BYTE* pMask, unsigned long long nPatternSize)
@@ -104,6 +105,13 @@ std::uintptr_t HookedFunctions::FindPattern(std::uintptr_t pBaseAddress, std::ui
         LOG("[~] Fixing the pattern \"%s\":\n\tBase: %s.0x%llx\n\tSize: 0x%llx\n\tMask: \"%s\"\n", strSearchPattern.c_str(), strModuleName.c_str(), pBaseAddress, nSectionSize, strSearchMask.c_str());
 
         return reinterpret_cast<uintptr_t>(Utils::PatternScan("client.dll", "40 53 48 83 EC 30 48 8B D9 49"));
+    }
+
+    if (nHashedPattern == FAILED_PATTERN_2)
+    {
+        LOG("[~] Fixing the pattern \"%s\":\n\tBase: %s.0x%llx\n\tSize: 0x%llx\n\tMask: \"%s\"\n", strSearchPattern.c_str(), strModuleName.c_str(), pBaseAddress, nSectionSize, strSearchMask.c_str());
+
+        return reinterpret_cast<uintptr_t>(Utils::PatternScan("engine2.dll", "74 C5 48 8B 01"));
     }
 
     const auto nResult = Original::oFindPattern(pBaseAddress, nSectionSize, pPattern, pMask, nPatternSize);
